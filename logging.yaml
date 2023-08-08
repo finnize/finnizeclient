@@ -1,0 +1,18 @@
+# https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema
+
+version: 1
+
+disable_existing_loggers: False
+
+formatters:
+  default:
+    format: "%(name)s - %(levelname)s - %(message)s"
+
+handlers:
+  stream:
+    class: logging.StreamHandler
+    formatter: default
+
+root:
+  level: INFO
+  handlers: [stream]
