@@ -22,15 +22,30 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "python-dotenv>=1.0.0,<1.1.0",
+  "numpy>=1.24.2",
+  "pandas>=1.5"
+]
 
 [project.urls]
-Documentation = "https://github.com/unknown/finnizeclient#readme"
-Issues = "https://github.com/unknown/finnizeclient/issues"
-Source = "https://github.com/unknown/finnizeclient"
+Documentation = "https://github.com/finnize/finnizeclient#readme"
+Issues = "https://github.com/finnize/finnizeclient/issues"
+Source = "https://github.com/finnize/finnizeclient"
+
+[project.optional-dependencies]
+dev = [ 
+  "black[jupyter]~=23.0",
+  "docformatter[tomli]~=1.0",
+  "ruff~=0.0",
+  "pytest~=7.0",
+  "pytest-kwparametrize~=0.0",
+  "pytest-xdist[psutil]~=3.0",
+  "hatch"
+]
 
 [tool.hatch.version]
-path = "src/finnizeclient/__about__.py"
+path = "finnizeclient/_version.py"
 
 [tool.hatch.envs.default]
 dependencies = [
@@ -76,23 +91,24 @@ all = [
 ]
 
 [tool.black]
-target-version = ["py37"]
-line-length = 120
-skip-string-normalization = true
+target-version = ["py38"]
+line-length = 88
+
+[tool.docformatter]
+black = true
+exclude = [".venv"]
 
 [tool.ruff]
-target-version = "py37"
-line-length = 120
+target-version = "py38"
+line-length = 88
 select = [
   "A",
   "ARG",
   "B",
   "C",
-  "DTZ",
   "E",
   "EM",
   "F",
-  "FBT",
   "I",
   "ICN",
   "ISC",
@@ -133,14 +149,6 @@ ignore = [
   # Ignore other
   "E741",
   "N802",
-  "S311",
-  "S104",
-  "B008",
-  "S101",
-]
-unfixable = [
-  # Don't touch unused imports
-  "F401",
 ]
 
 [tool.ruff.isort]
@@ -150,8 +158,11 @@ known-first-party = ["finnizeclient"]
 ban-relative-imports = "all"
 
 [tool.ruff.per-file-ignores]
-# Tests can use magic values, assertions, and relative imports
-"tests/**/*" = ["PLR2004", "S101", "TID252"]
+# Don't touch unused imports
+"**/__init__.py" = ["F401"]
+# Tests can use magic values, assertions, and other things
+"tests/**/*" = ["PLR2004", "S101", "T", "ARG", "B006", "B008"]
+"examples/**/*" = ["T", "PLR2004"]
 
 [tool.coverage.run]
 source_pkgs = ["finnizeclient", "tests"]
