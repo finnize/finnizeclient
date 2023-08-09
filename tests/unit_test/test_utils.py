@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import pytest
 from pandas._testing import assert_dict_equal
-from pandas.testing import assert_frame_equal
 
 from src.utils import transform_list_of_trades
 
