@@ -10,9 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = "MIT"
 keywords = []
-authors = [
-  { name = "Puwa Termnuphan", email = "puwa@fintech.co.th" },
-]
+authors = []
 classifiers = [
   "Development Status :: 4 - Beta",
   "Programming Language :: Python",
