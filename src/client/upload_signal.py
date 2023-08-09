@@ -18,6 +18,7 @@ def upload_backtest_signals(strategy_signal: dict, url: str):
     res = requests.post(
         url=url,
         json=strategy_signal,
+        timeout=5
         # note: add the API KEY and SECRET later.
     )
     if not res.ok:
