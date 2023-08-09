@@ -17,7 +17,7 @@ The FinnizeClient is an open-source library that assists investors in uploading 
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+pip install git+https://github.com/finnize/finnizeclient
 ```
 
 ## Workflow
