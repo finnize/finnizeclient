@@ -1,4 +1,4 @@
-from src.workflow import upload_tradingview_signal
+from finnizeclient.workflow import upload_tradingview_signal
 
 
 def test_workflow():

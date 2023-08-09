@@ -3,7 +3,7 @@ import pandas as pd
 import pytest
 from pandas._testing import assert_dict_equal
 
-from src.utils import transform_list_of_trades
+from finnizeclient.utils import transform_list_of_trades
 
 
 class TestTransformListOfTrade:
