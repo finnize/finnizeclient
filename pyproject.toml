@@ -1,0 +1,184 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "finnizeclient"
+dynamic = ["version"]
+description = 'open source repository that help to sent the signal to finnize website'
+readme = "README.md"
+requires-python = ">=3.7"
+license = "MIT"
+keywords = []
+authors = []
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = [
+  "python-dotenv>=1.0.0,<1.1.0",
+  "numpy>=1.24.2",
+  "pandas>=1.5"
+]
+
+[project.urls]
+Documentation = "https://github.com/finnize/finnizeclient#readme"
+Issues = "https://github.com/finnize/finnizeclient/issues"
+Source = "https://github.com/finnize/finnizeclient"
+
+[project.optional-dependencies]
+dev = [ 
+  "black[jupyter]~=23.0",
+  "docformatter[tomli]~=1.0",
+  "ruff~=0.0",
+  "pytest~=7.0",
+  "pytest-kwparametrize~=0.0",
+  "pytest-xdist[psutil]~=3.0",
+  "hatch"
+]
+
+[tool.hatch.version]
+path = "finnizeclient/_version.py"
+
+[tool.hatch.envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+]
+[tool.hatch.envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest {args:tests}"
+cov-report = [
+  "- coverage combine",
+  "coverage report",
+]
+cov = [
+  "test-cov",
+  "cov-report",
+]
+
+[[tool.hatch.envs.all.matrix]]
+python = ["3.7", "3.8", "3.9", "3.10", "3.11"]
+
+[tool.hatch.envs.lint]
+detached = true
+dependencies = [
+  "black>=23.1.0",
+  "mypy>=1.0.0",
+  "ruff>=0.0.243",
+]
+[tool.hatch.envs.lint.scripts]
+typing = "mypy --install-types --non-interactive {args:src/finnizeclient tests}"
+style = [
+  "ruff {args:.}",
+  "black --check --diff {args:.}",
+]
+fmt = [
+  "black {args:.}",
+  "ruff --fix {args:.}",
+  "style",
+]
+all = [
+  "style",
+  "typing",
+]
+
+[tool.black]
+target-version = ["py38"]
+line-length = 88
+
+[tool.docformatter]
+black = true
+exclude = [".venv"]
+
+[tool.ruff]
+target-version = "py38"
+line-length = 88
+select = [
+  "A",
+  "ARG",
+  "B",
+  "C",
+  "E",
+  "EM",
+  "F",
+  "I",
+  "ICN",
+  "ISC",
+  "N",
+  "PLC",
+  "PLE",
+  "PLR",
+  "PLW",
+  "Q",
+  "RUF",
+  "S",
+  "T",
+  "TID",
+  "UP",
+  "W",
+  "YTT",
+]
+ignore = [
+  # Allow non-abstract empty methods in abstract base classes
+  "B027",
+  # Ignore checks for possible passwords
+  "S105",
+  "S106",
+  "S107",
+  # Ignore complexity
+  "C901",
+  "PLR0911",
+  "PLR0912",
+  "PLR0913",
+  "PLR0915",
+  # Ignore line length, let black, docformatter handle it
+  "E501",
+  # Ignore cache usage
+  "B019",
+  # Ignore None and Boolen comparisons from sqlalchemy and pandas
+  "E711",
+  "E712",
+  # Ignore other
+  "E741",
+  "N802",
+]
+
+[tool.ruff.isort]
+known-first-party = ["finnizeclient"]
+
+[tool.ruff.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.ruff.per-file-ignores]
+# Don't touch unused imports
+"**/__init__.py" = ["F401"]
+# Tests can use magic values, assertions, and other things
+"tests/**/*" = ["PLR2004", "S101", "T", "ARG", "B006", "B008"]
+"examples/**/*" = ["T", "PLR2004"]
+
+[tool.coverage.run]
+source_pkgs = ["finnizeclient", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/finnizeclient/__about__.py",
+]
+
+[tool.coverage.paths]
+finnizeclient = ["src/finnizeclient", "*/finnizeclient/src/finnizeclient"]
+tests = ["tests", "*/finnizeclient/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
