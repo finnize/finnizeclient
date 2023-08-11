@@ -1,7 +1,14 @@
+from datetime import datetime, timedelta
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from dateutil import tz
+
+formats = [
+    "%Y-%m-%d %H:%M",
+    "%Y-%m-%d",
+]
 
 
 def read_list_of_trades(path: str):
@@ -9,7 +16,88 @@ def read_list_of_trades(path: str):
     return df
 
 
-def transform_list_of_trades(df: pd.DataFrame, strategy_id: int, weight: float) -> dict:
+def _parse_datetime(input_str: str) -> datetime:
+    """Parse a datetime string using a list of possible formats.
+
+    Parameters
+    ----------
+    input_str : str
+        The input datetime string to be parsed.
+
+    Returns
+    -------
+    datetime
+        The parsed datetime object.
+
+    Raises
+    ------
+    ValueError
+        If the input datetime string cannot be parsed using any of the provided formats.
+    """
+    for format_str in formats:
+        try:
+            dt_object = datetime.strptime(input_str, format_str)
+            return dt_object
+        except ValueError:
+            pass
+
+    msg = "Invalid datetime format"
+    raise ValueError(msg)
+
+
+def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
+    """Format datetime strings in a list of signal dictionaries to UTC with the format
+    '%Y-%m-%dT%H:%M:Z'.
+
+    Parameters
+    ----------
+    signal_list : list[dict]
+        A list of dictionaries containing signal information.
+
+    utc : str, optional
+        The UTC offset in the format 'UTC±X', where X is the offset in hours. Default is 'UTC+7'.
+
+    Returns
+    -------
+    list[dict]
+        A list of dictionaries with formatted datetime strings in UTC and signal data.
+
+    Notes
+    -----
+    This function takes a list of dictionaries, each representing a signal with a 'signal_at' datetime
+    string and a 'signal' dictionary. It converts the 'signal_at' datetime strings from the provided
+    timezone (Asia/Bangkok) to UTC and formats them using the '%Y-%m-%dT%H:%M:Z' format.
+
+    Example
+    -------
+    >>> signal_list = [
+        {'signal_at': '2023-08-07 13:00', 'signal': {'S50': 0.0}},
+        {'signal_at': '2023-08-04 17:45', 'signal': {'S50': -0.5}}
+    ]
+    >>> formatted_signals = _format_datetime(signal_list)
+    >>> print(formatted_signals)
+        [
+            {'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
+            {'signal_at': '2023-08-04T17:45+0700', 'signal': {'S50': -0.5}}
+        ]
+    """
+    offset = 7 - int(utc.split("UTC")[1][:2])
+
+    formatted_signals = [
+        {
+            "signal_at": (_parse_datetime(item["signal_at"]) + timedelta(hours=offset))
+            .replace(tzinfo=tz.gettz("Etc/GMT-7"))
+            .strftime("%Y-%m-%dT%H:%M%z"),
+            "signal": item["signal"],
+        }
+        for item in signal_list
+    ]
+    return formatted_signals
+
+
+def transform_list_of_trades(
+    df: pd.DataFrame, strategy_id: int, weight: float, utc="UTC+7"
+) -> dict:
     """Transforms a DataFrame of trades into a dictionary of signals for a given
     strategy.
 
@@ -38,11 +126,11 @@ def transform_list_of_trades(df: pd.DataFrame, strategy_id: int, weight: float) 
     >>> signals = transform_list_of_trades("trades.csv", 999, 0.5)
     >>> print(signals)
     {'strategy_id': 999,
-     'signals': [{'signal_at': '2023-08-07 13:00', 'signal': {'S50': 0.0}},
-                 {'signal_at': '2023-08-04 17:45', 'signal': {'S50': -0.5}},
-                 {'signal_at': '2023-08-03 10:45', 'signal': {'S50': 0.0}},
-                 {'signal_at': '2023-08-03 10:45', 'signal': {'S50': -0.5}},
-                 {'signal_at': '2023-07-14 16:45', 'signal': {'S50': 0.0}}]
+     'signals': [{'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
+                 {'signal_at': '2023-08-04T14:00+0700', 'signal': {'S50': -0.5}},
+                 {'signal_at': '2023-08-03T15:00+0700', 'signal': {'S50': 0.0}},
+                 {'signal_at': '2023-08-03T16:00+0700', 'signal': {'S50': -0.5}},
+                 {'signal_at': '2023-07-14T17:00+0700', 'signal': {'S50': 0.0}}]
     }
     """
     # transform to weight
@@ -62,6 +150,9 @@ def transform_list_of_trades(df: pd.DataFrame, strategy_id: int, weight: float) 
     if isinstance(signals_list[0]["signal_at"], float):
         signals_list.pop(0)
 
+    # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
+    formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
+
     # transform as a dictionary signals
-    strategy_signal = {"strategy_id": strategy_id, "signals": signals_list}
+    strategy_signal = {"strategy_id": strategy_id, "signals": formatted_signals}
     return strategy_signal
