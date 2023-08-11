@@ -3,7 +3,11 @@ import pandas as pd
 import pytest
 from pandas._testing import assert_dict_equal
 
+<<<<<<< HEAD
 from finnizeclient.utils import _format_datetime, transform_list_of_trades
+=======
+from finnizeclient.utils import transform_list_of_trades
+>>>>>>> dev
 
 
 class TestTransformListOfTrade:
