@@ -2,11 +2,59 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import pytz
 
 
 def read_list_of_trades(path: str):
     df = pd.read_csv(Path(path))
     return df
+
+
+def _format_datetime(signal_list: list[dict]) -> list[dict]:
+    """Format datetime strings in a list of signal dictionaries to UTC with the format
+    '%Y-%m-%dT%H:%M:Z'.
+
+    Parameters
+    ----------
+    signal_list : list[dict]
+        A list of dictionaries containing signal information.
+
+    Returns
+    -------
+    list[dict]
+        A list of dictionaries with formatted datetime strings in UTC and signal data.
+
+    Notes
+    -----
+    This function takes a list of dictionaries, each representing a signal with a 'signal_at' datetime
+    string and a 'signal' dictionary. It converts the 'signal_at' datetime strings from the provided
+    timezone (Asia/Bangkok) to UTC and formats them using the '%Y-%m-%dT%H:%M:Z' format.
+
+    Example
+    -------
+    >>> signal_list = [
+        {'signal_at': '2023-08-07 13:00', 'signal': {'S50': 0.0}},
+        {'signal_at': '2023-08-04 17:45', 'signal': {'S50': -0.5}}
+    ]
+    >>> formatted_signals = _formate_datetime(signal_list)
+    >>> print(formatted_signals)
+        [
+            {'signal_at': '2023-08-07T06:00:Z', 'signal': {'S50': 0.0}},
+            {'signal_at': '2023-08-04T10:45:Z', 'signal': {'S50': -0.5}}
+        ]
+    """
+    timezone_utc_plus_7 = pytz.timezone("Asia/Bangkok")
+    formatted_signals = [
+        {
+            "signal_at": pd.to_datetime(item["signal_at"])
+            .tz_localize(timezone_utc_plus_7)
+            .astimezone(pytz.UTC)
+            .strftime("%Y-%m-%dT%H:%M:"), # วิธีใส่ timezone ผ่าน stff
+            "signal": item["signal"],
+        }
+        for item in signal_list
+    ]
+    return formatted_signals
 
 
 def transform_list_of_trades(df: pd.DataFrame, strategy_id: int, weight: float) -> dict:
@@ -62,6 +110,9 @@ def transform_list_of_trades(df: pd.DataFrame, strategy_id: int, weight: float) 
     if isinstance(signals_list[0]["signal_at"], float):
         signals_list.pop(0)
 
+    # convert and format datetime as UTC+0
+    formatted_signals = _format_datetime(signal_list=signals_list)
+
     # transform as a dictionary signals
-    strategy_signal = {"strategy_id": strategy_id, "signals": signals_list}
+    strategy_signal = {"strategy_id": strategy_id, "signals": formatted_signals}
     return strategy_signal
