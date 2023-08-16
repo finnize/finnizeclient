@@ -21,7 +21,9 @@ pip install git+https://github.com/finnize/finnizeclient
 ```
 
 ## Workflow
+
 Before uploading any signals to the Finnize website, you need to know the `strategy_id`. This is important because if the strategy does not exist, the upload method will raise a 404 error indicating 'Strategy not found'.
+
 ### Python
 
 coming soon..
@@ -35,7 +37,9 @@ coming soon..
 coming soon..
 
 ---
+
 ### TradingView
+
 #### Upload Daily Signal
 
 1. Open the TradingView application.
@@ -68,8 +72,6 @@ coming soon..
 
 4. Choose the **Settings** menu and click on **Condition**. Select a name that matches your strategy name, and enter the following information in the **Message** field: `{{strategy.order.alert_message}}`. This means that the alert template will be sent via the alert message.
 
-
-
    ```python
    # @version=5
    strategy("Finnize Example", overlay=true)
@@ -87,7 +89,8 @@ coming soon..
 #### Upload Backtest Signal
 
 1. Open the TradingView application.
-2. Set up the timezone TradingView as **Exchange**.
+2. Recommended set up the timezone TradingView as **(UTC+7) Bangkok**.
+    - If users haven't exported data in UTC+7, they can address this by adjusting the utc parameter within the function's `upload_tradingview_signal()`.
 3. Select the strategy that you want to upload, and click **List of Trades**, and then export the `CSV` files.
 
 <div align="center">
@@ -95,4 +98,4 @@ coming soon..
 </div>
 
 4. Open the Visual Code Studio application.
-2. Follow the steps outlined in the sample code within the `/example` folder, specifically in the file named `upload_signal_example.py`.
+5. Follow the steps outlined in the sample code within the `/example` folder, specifically in the file named `upload_signal_example.py`.
