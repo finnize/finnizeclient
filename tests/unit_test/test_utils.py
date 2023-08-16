@@ -3,7 +3,11 @@ import pandas as pd
 import pytest
 from pandas._testing import assert_dict_equal
 
-from finnizeclient.utils import _format_datetime, transform_list_of_trades
+from finnizeclient.utils import (
+    _format_datetime,
+    _handle_duplicate_signal_at,
+    transform_list_of_trades,
+)
 
 
 class TestTransformListOfTrade:
@@ -136,4 +140,45 @@ class TestFormatDatetime:
         self, signal_list: list[dict], utc: str, expect_result: list[dict]
     ):
         result = _format_datetime(signal_list=signal_list, utc=utc)
+        assert [i for i in result if i not in expect_result] == []
+
+
+class TestHandleDuplicateSignalAt:
+    @pytest.mark.parametrize(
+        ("signal_list", "expect_result"),
+        [
+            (
+                # case 1: duplicate signal weight 0 before 1.
+                [
+                    {"signal_at": "2023-08-04T00:00+0700", "signal": {"S50": 0.0}},
+                    {"signal_at": "2023-08-05T00:00+0700", "signal": {"S50": 0.5}},
+                    {"signal_at": "2023-08-06T00:00+0700", "signal": {"S50": 0.0}},
+                    {"signal_at": "2023-08-06T00:00+0700", "signal": {"S50": 0.5}},
+                ],
+                [
+                    {"signal_at": "2023-08-04T00:00+0700", "signal": {"S50": 0.0}},
+                    {"signal_at": "2023-08-05T00:00+0700", "signal": {"S50": 0.5}},
+                    {"signal_at": "2023-08-06T00:00+0700", "signal": {"S50": 0.0}},
+                ],
+            ),
+            (
+                # case 2: duplicate signal weight > 1 before 0.
+                [
+                    {"signal_at": "2023-08-04 13:00", "signal": {"S50": 1.0}},
+                    {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}},
+                    {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},
+                    {"signal_at": "2023-08-04 15:00", "signal": {"S50": 0.0}},
+                ],
+                [
+                    {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
+                    {"signal_at": "2023-08-04 14:00", "signal": {"S50": 1.0}},
+                    {"signal_at": "2023-08-04 15:00", "signal": {"S50": 0.0}},
+                ],
+            ),
+        ],
+    )
+    def test_handle_duplicate_signal_at(
+        self, signal_list: list[dict], expect_result: list[dict]
+    ):
+        result = _handle_duplicate_signal_at(signal_list=signal_list)
         assert [i for i in result if i not in expect_result] == []

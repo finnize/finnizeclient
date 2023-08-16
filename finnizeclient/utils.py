@@ -82,7 +82,6 @@ def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
         ]
     """
     offset = 7 - int(utc.split("UTC")[1][:2])
-
     formatted_signals = [
         {
             "signal_at": (_parse_datetime(item["signal_at"]) + timedelta(hours=offset))
@@ -93,6 +92,61 @@ def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
         for item in signal_list
     ]
     return formatted_signals
+
+
+def _handle_duplicate_signal_at(signal_list: list[dict]):
+    """Filter out duplicate signal_at entries while keeping signal <= 0.
+
+    Parameters
+    ----------
+    signal_list : list[dict]
+        A list of dictionaries containing signal data.
+
+    Returns
+    -------
+    list[dict]
+        A filtered list of dictionaries with duplicate signal_at entries removed
+        and signal values <= 0.
+
+    Notes
+    --------
+    This function handles cases where an entry has a signal, and during the same interval period,
+    the price hits the stop loss. In backtesting, such signals are rejected
+    because the backtesting algorithm processes only OHLC prices.
+    However, in actual execution, this issue does not pose a problem.
+
+    Examples
+    --------
+    >>> data = [
+    ...     {"signal_at": "2023-08-04T00:00+0700", "signal": {'S50': 0.0}},
+    ...     {"signal_at": "2023-08-05T00:00+0700", "signal": {'S50': 0.5}},
+    ...     {"signal_at": "2023-08-06T00:00+0700", "signal": {'S50': 0.0}},
+    ...     {"signal_at": "2023-08-06T00:00+0700", "signal": {'S50': 0.5}},
+    ... ]
+    >>> result = _handle_duplicate_signal_at(data)
+    >>> print(result)
+    [{'signal_at': '2023-08-04T00:00+0700', 'signal': {'S50': 0.0}},
+     {'signal_at': '2023-08-05T00:00+0700', 'signal': {'S50': 0.5}},
+     {'signal_at': '2023-08-06T00:00+0700', 'signal': {'S50': 0.0}}]
+    """
+    seen_dates = set()
+    filtered_data = []
+
+    for item in signal_list:
+        signal_at = item["signal_at"]
+        signal_value = next(iter(item["signal"].values()))  # Extract the signal value
+        if signal_at in seen_dates and signal_value > 0:
+            continue  # Skip duplicates with signal > 0
+        elif signal_at in seen_dates and signal_value == 0:
+            # Remove any existing entry with the same signal_at
+            filtered_data = [
+                entry for entry in filtered_data if entry["signal_at"] != signal_at
+            ]
+            seen_dates.remove(signal_at)
+
+        seen_dates.add(signal_at)
+        filtered_data.append(item)
+    return filtered_data
 
 
 def transform_list_of_trades(
@@ -122,16 +176,20 @@ def transform_list_of_trades(
         A dictionary containing the strategy ID and a list of dictionaries representing signals.
 
     Examples
-    -------
-    >>> signals = transform_list_of_trades("trades.csv", 999, 0.5)
-    >>> print(signals)
-    {'strategy_id': 999,
-     'signals': [{'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
-                 {'signal_at': '2023-08-04T14:00+0700', 'signal': {'S50': -0.5}},
-                 {'signal_at': '2023-08-03T15:00+0700', 'signal': {'S50': 0.0}},
-                 {'signal_at': '2023-08-03T16:00+0700', 'signal': {'S50': -0.5}},
-                 {'signal_at': '2023-07-14T17:00+0700', 'signal': {'S50': 0.0}}]
-    }
+    --------
+    >>> data = [
+    ...     {"signal_at": "2023-08-04 13:00", "signal": {'S50': 0.0}},
+    ...     {"signal_at": "2023-08-04 14:00", "signal": {'S50': 1.0}},
+    ...     {"signal_at": "2023-08-04 15:00", "signal": {'S50': 1.0}},
+    ...     {"signal_at": "2023-08-04 15:00", "signal": {'S50': 0.0}}
+    ... ]
+    >>> result = _handle_duplicate_signal_at(data)
+    >>> print(result)
+        [
+            {'signal_at': '2023-08-04 13:00', 'signal': {'S50': 0.0}},
+            {'signal_at': '2023-08-04 14:00', 'signal': {'S50': 1.0}},
+            {'signal_at': '2023-08-04 15:00', 'signal': {'S50': 0.0}}
+        ]
     """
     # transform to weight
     df.loc[df["Type"].isin(["Exit Short", "Exit Long"]), "weight"] = 0  # sell
@@ -152,7 +210,8 @@ def transform_list_of_trades(
 
     # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
     formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
-
+    # handle duplicate signal_at
+    filter_signals = _handle_duplicate_signal_at(signal_list=formatted_signals)
     # transform as a dictionary signals
-    strategy_signal = {"strategy_id": strategy_id, "signals": formatted_signals}
+    strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
     return strategy_signal
