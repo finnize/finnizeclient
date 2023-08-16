@@ -90,7 +90,7 @@ coming soon..
 
 1. Open the TradingView application.
 2. Recommended set up the timezone TradingView as **(UTC+7) Bangkok**.
-    - If users haven't exported data in UTC+7, they can address this by adjusting the utc parameter within the function's `upload_tradingview_signal()`.
+   - If users haven't exported data in UTC+7, they can address this by adjusting the utc parameter within the function's `upload_tradingview_signal()`.
 3. Select the strategy that you want to upload, and click **List of Trades**, and then export the `CSV` files.
 
 <div align="center">
