@@ -8,5 +8,6 @@ upload_tradingview_signal(
     path="example/list_of_trade_example.csv",
     strategy_id=3907697156338858,
     weight=1,
+    utc="UTC+7",
     url="https://dev-client-gateway.finnize.com/api/v1/strategy-signal/",
 )
