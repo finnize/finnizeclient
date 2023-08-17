@@ -21,7 +21,9 @@ pip install git+https://github.com/finnize/finnizeclient
 ```
 
 ## Workflow
+
 Before uploading any signals to the Finnize website, you need to know the `strategy_id`. This is important because if the strategy does not exist, the upload method will raise a 404 error indicating 'Strategy not found'.
+
 ### Python
 
 coming soon..
@@ -35,7 +37,9 @@ coming soon..
 coming soon..
 
 ---
+
 ### TradingView
+
 #### Upload Daily Signal
 
 1. Open the TradingView application.
@@ -62,36 +66,35 @@ coming soon..
    ```
 
 3. Create a Alert
-<div style="display: flex; justify-content: center; align-items: center;">
+<div align="center">
     <img src="./example/images/turtorial_02.png" width=500>
 </div>
 
 4. Choose the **Settings** menu and click on **Condition**. Select a name that matches your strategy name, and enter the following information in the **Message** field: `{{strategy.order.alert_message}}`. This means that the alert template will be sent via the alert message.
-
-
 
    ```python
    # @version=5
    strategy("Finnize Example", overlay=true)
    ```
 
-<div style="display: flex; justify-content: center; align-items: center;">
+<div align="center">
     <img src="./example/images/turtorial_03.png" height=400>
 </div>
 
-1. Choose the **Notification** menu. and click on **"Enable Webhook URL"**, then enter the correct webhook URL to send signals to the Finnize website.
-<div style="display: flex; justify-content: center; align-items: center;">
+5. Choose the **Notification** menu. and click on **"Enable Webhook URL"**, then enter the correct webhook URL to send signals to the Finnize website.
+<div align="center">
     <img src="./example/images/turtorial_04.png" height=450>
 </div>
 
 #### Upload Backtest Signal
 
 1. Open the TradingView application.
-1. Set up the timezone TradingView as **Exchange**.
-1. Select the strategy that you want to upload, and click **List of Trades**, and then export the `CSV` files.
+2. Recommended set up the timezone TradingView as **(UTC+7) Bangkok**.
+   - If users haven't exported data in UTC+7, they can address this by adjusting the utc parameter within the function's `upload_tradingview_signal()`.
+3. Select the strategy that you want to upload, and click **List of Trades**, and then export the `CSV` files.
 
-<div style="display: flex; justify-content: center; align-items: center;">
-    <img  style="display: flex; justify-content: center; align-items: center;" src="./example/images/turtorial_01.png">
+<div align="center">
+    <img src="./example/images/turtorial_01.png">
 </div>
 
 4. Open the Visual Code Studio application.

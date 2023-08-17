@@ -12,6 +12,7 @@ def upload_tradingview_signal(
     path: str,
     strategy_id: int,
     weight: float,
+    utc="UTC+7",
     url="https://client-gateway.finnize.com/api/v1/strategy-signal/",
 ):
     """Uploads trading signals generated from a TradingView exported CSV file to the
@@ -28,6 +29,8 @@ def upload_tradingview_signal(
         The unique identifier for the trading strategy associated with the signals.
     weight : float
         A weight or significance factor associated with the signals.
+    utc : str, optional
+        The UTC offset in the format 'UTC±X', where X is the offset in hours. Default is 'UTC+7'.
     url : str, optional
         The URL endpoint where the signals will be uploaded, by default "https://client-gateway.finnize.com/api/v1/strategy-signal/"
 
@@ -42,7 +45,7 @@ def upload_tradingview_signal(
 
     # transform CSV files to signal dictionary before sent to Finnize website
     strategy_signal = transform_list_of_trades(
-        df=df, strategy_id=strategy_id, weight=weight
+        df=df, strategy_id=strategy_id, weight=weight, utc=utc
     )
     logger.debug("Transform signal successful")
 

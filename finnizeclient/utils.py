@@ -12,7 +12,15 @@ formats = [
 
 
 def read_list_of_trades(path: str):
+    """The default sorting order for the trade list on TradingView is from newest to
+    oldest.
+
+    Therefore, we need to rearrange it to display the trades from oldest to newest.
+    """
     df = pd.read_csv(Path(path))
+
+    df = df.iloc[::-1]
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
@@ -82,7 +90,6 @@ def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
         ]
     """
     offset = 7 - int(utc.split("UTC")[1][:2])
-
     formatted_signals = [
         {
             "signal_at": (_parse_datetime(item["signal_at"]) + timedelta(hours=offset))
@@ -93,6 +100,47 @@ def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
         for item in signal_list
     ]
     return formatted_signals
+
+
+def _handle_duplicate_signal_at(signal_list: list[dict]):
+    """Filter out duplicate signal_at entries.
+
+    Parameters
+    ----------
+    signal_list : list[dict]
+        A list of dictionaries containing signal data.
+
+    Returns
+    -------
+    list[dict]
+        A filtered list of dictionaries with duplicate signal_at entries removed
+
+    Notes
+    --------
+    This function handles cases where an entry has a signal, and during the same interval period,
+    the price hits the stop loss. In backtesting, such signals are rejected
+    because the backtesting algorithm processes only OHLC prices.
+    However, in actual execution, this issue does not pose a problem.
+
+    Examples
+    --------
+    >>> data = [
+    ...            {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
+    ...            {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
+    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 1.0}},
+    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}}, # SL
+    ...            {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},
+    ... ]
+    >>> result = _handle_duplicate_signal_at(data)
+    >>> print(result)
+    [   {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
+        {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
+        {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}},
+        {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},]
+    """
+
+    d = {i["signal_at"]: i for i in signal_list}
+    return list(d.values())
 
 
 def transform_list_of_trades(
@@ -147,12 +195,13 @@ def transform_list_of_trades(
         signals_list.append(signal)
 
     # check the latest signal is holding or not
-    if isinstance(signals_list[0]["signal_at"], float):
-        signals_list.pop(0)
+    if isinstance(signals_list[-1]["signal_at"], float):
+        signals_list.pop(-1)
 
     # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
     formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
-
+    # handle duplicate signal_at
+    filter_signals = _handle_duplicate_signal_at(signal_list=formatted_signals)
     # transform as a dictionary signals
-    strategy_signal = {"strategy_id": strategy_id, "signals": formatted_signals}
+    strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
     return strategy_signal
