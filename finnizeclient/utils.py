@@ -176,20 +176,16 @@ def transform_list_of_trades(
         A dictionary containing the strategy ID and a list of dictionaries representing signals.
 
     Examples
-    --------
-    >>> data = [
-    ...     {"signal_at": "2023-08-04 13:00", "signal": {'S50': 0.0}},
-    ...     {"signal_at": "2023-08-04 14:00", "signal": {'S50': 1.0}},
-    ...     {"signal_at": "2023-08-04 15:00", "signal": {'S50': 1.0}},
-    ...     {"signal_at": "2023-08-04 15:00", "signal": {'S50': 0.0}}
-    ... ]
-    >>> result = _handle_duplicate_signal_at(data)
-    >>> print(result)
-        [
-            {'signal_at': '2023-08-04 13:00', 'signal': {'S50': 0.0}},
-            {'signal_at': '2023-08-04 14:00', 'signal': {'S50': 1.0}},
-            {'signal_at': '2023-08-04 15:00', 'signal': {'S50': 0.0}}
-        ]
+    -------
+    >>> signals = transform_list_of_trades("trades.csv", 999, 0.5)
+    >>> print(signals)
+    {'strategy_id': 999,
+     'signals': [{'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
+                 {'signal_at': '2023-08-04T14:00+0700', 'signal': {'S50': -0.5}},
+                 {'signal_at': '2023-08-03T15:00+0700', 'signal': {'S50': 0.0}},
+                 {'signal_at': '2023-08-03T16:00+0700', 'signal': {'S50': -0.5}},
+                 {'signal_at': '2023-07-14T17:00+0700', 'signal': {'S50': 0.0}}]
+    }
     """
     # transform to weight
     df.loc[df["Type"].isin(["Exit Short", "Exit Long"]), "weight"] = 0  # sell
