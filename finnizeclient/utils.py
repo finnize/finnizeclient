@@ -12,8 +12,13 @@ formats = [
 
 
 def read_list_of_trades(path: str):
+    """The default sorting order for the trade list on TradingView is from newest to
+    oldest.
+
+    Therefore, we need to rearrange it to display the trades from oldest to newest.
+    """
     df = pd.read_csv(Path(path))
-    # convert the index from last to first
+
     df = df.iloc[::-1]
     df.reset_index(drop=True, inplace=True)
     return df
@@ -133,19 +138,9 @@ def _handle_duplicate_signal_at(signal_list: list[dict]):
         {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}},
         {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},]
     """
-    temp_last_signal_at = ""
-    filtered_data = []
 
-    for item in signal_list:
-        signal_at = item["signal_at"]
-        if signal_at == temp_last_signal_at:
-            filtered_data.pop()
-            filtered_data.append(item)
-        else:
-            temp_last_signal_at = signal_at
-            filtered_data.append(item)
-
-    return filtered_data
+    d = {i["signal_at"]: i for i in signal_list}
+    return list(d.values())
 
 
 def transform_list_of_trades(
