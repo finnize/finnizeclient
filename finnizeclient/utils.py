@@ -13,6 +13,9 @@ formats = [
 
 def read_list_of_trades(path: str):
     df = pd.read_csv(Path(path))
+    # convert the index from last to first
+    df = df.iloc[::-1]
+    df.reset_index(drop=True, inplace=True)
     return df
 
 
@@ -95,7 +98,7 @@ def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
 
 
 def _handle_duplicate_signal_at(signal_list: list[dict]):
-    """Filter out duplicate signal_at entries while keeping signal <= 0.
+    """Filter out duplicate signal_at entries.
 
     Parameters
     ----------
@@ -106,7 +109,6 @@ def _handle_duplicate_signal_at(signal_list: list[dict]):
     -------
     list[dict]
         A filtered list of dictionaries with duplicate signal_at entries removed
-        and signal values <= 0.
 
     Notes
     --------
@@ -118,34 +120,31 @@ def _handle_duplicate_signal_at(signal_list: list[dict]):
     Examples
     --------
     >>> data = [
-    ...     {"signal_at": "2023-08-04T00:00+0700", "signal": {'S50': 0.0}},
-    ...     {"signal_at": "2023-08-05T00:00+0700", "signal": {'S50': 0.5}},
-    ...     {"signal_at": "2023-08-06T00:00+0700", "signal": {'S50': 0.0}},
-    ...     {"signal_at": "2023-08-06T00:00+0700", "signal": {'S50': 0.5}},
+    ...            {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
+    ...            {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
+    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 1.0}},
+    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}}, # SL
+    ...            {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},
     ... ]
     >>> result = _handle_duplicate_signal_at(data)
     >>> print(result)
-    [{'signal_at': '2023-08-04T00:00+0700', 'signal': {'S50': 0.0}},
-     {'signal_at': '2023-08-05T00:00+0700', 'signal': {'S50': 0.5}},
-     {'signal_at': '2023-08-06T00:00+0700', 'signal': {'S50': 0.0}}]
+    [   {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
+        {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
+        {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}},
+        {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},]
     """
-    seen_dates = set()
+    temp_last_signal_at = ""
     filtered_data = []
 
     for item in signal_list:
         signal_at = item["signal_at"]
-        signal_value = next(iter(item["signal"].values()))  # Extract the signal value
-        if signal_at in seen_dates and signal_value > 0:
-            continue  # Skip duplicates with signal > 0
-        elif signal_at in seen_dates and signal_value == 0:
-            # Remove any existing entry with the same signal_at
-            filtered_data = [
-                entry for entry in filtered_data if entry["signal_at"] != signal_at
-            ]
-            seen_dates.remove(signal_at)
+        if signal_at == temp_last_signal_at:
+            filtered_data.pop()
+            filtered_data.append(item)
+        else:
+            temp_last_signal_at = signal_at
+            filtered_data.append(item)
 
-        seen_dates.add(signal_at)
-        filtered_data.append(item)
     return filtered_data
 
 
@@ -201,8 +200,8 @@ def transform_list_of_trades(
         signals_list.append(signal)
 
     # check the latest signal is holding or not
-    if isinstance(signals_list[0]["signal_at"], float):
-        signals_list.pop(0)
+    if isinstance(signals_list[-1]["signal_at"], float):
+        signals_list.pop(-1)
 
     # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
     formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
