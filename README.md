@@ -22,7 +22,11 @@ pip install git+https://github.com/finnize/finnizeclient
 
 ## Workflow
 
-Before uploading any signals to the Finnize website, you need to know the `strategy_id`. This is important because if the strategy does not exist, the upload method will raise a 404 error indicating 'Strategy not found'.
+1. **Generate a API KEY** on finnize website.
+2. you must first grant your account **guru privileges** in order to use the FinnizeClient API.
+    - If this is not done, an "Unauthorized" error will be raised.
+3. when uploading any signals to the Finnize website, you need to be aware of the **strategy_id**.
+    - This is crucial, as the upload method will result in a 404 error with the message "Strategy not found" if the strategy does not exist.
 
 ### Python
 
