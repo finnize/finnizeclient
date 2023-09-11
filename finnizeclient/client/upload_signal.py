@@ -1,3 +1,6 @@
+import ast
+import json
+
 import requests
 
 from finnizeclient import config as cfg
@@ -5,7 +8,23 @@ from finnizeclient import config as cfg
 """
 The user should be authorized as a guru to be able to upload or delete the backtest signal.
 """
-headers = {"Authorization": f"Bearer {cfg.FINNIZE_API_KEY}.{cfg.FINNIZE_API_SECRET}"}
+if ast.literal_eval(cfg.FINNIZE_ENVIRONMENT):
+    headers = {
+        "X-Permission": json.dumps(
+            {
+                "role_id": cfg.ROLE_ID,
+                "name": cfg.NAME,
+                "can_login_admin_site": cfg.CAN_LOGIN_ADMIN_SITE,
+                "can_create_strategy": cfg.CAN_CREATE_STRATEGY,
+                "user_id": cfg.USER_ID,
+                "broker_id": cfg.BROKER_ID,
+            }
+        )
+    }
+else:
+    headers = {
+        "Authorization": f"Bearer {cfg.FINNIZE_API_KEY}.{cfg.FINNIZE_API_SECRET}"
+    }
 
 
 def upload_backtest_signals(strategy_signal: dict, url: str):
@@ -47,3 +66,8 @@ def delete_backtest_signals(strategy_id: int, url: str):
     if not res.ok:
         msg = f"{res.json()}"
         raise requests.HTTPError(msg)
+
+
+"""
+    LOCAL METHOD ENVIRONMENT
+"""
