@@ -1,11 +1,11 @@
 import requests
+from requests.auth import HTTPBasicAuth
 
 from finnizeclient import config as cfg
 
 """
 The user should be authorized as a guru to be able to upload or delete the backtest signal.
 """
-headers = {"Authorization": f"Bearer {cfg.FINNIZE_API_KEY}.{cfg.FINNIZE_API_SECRET}"}
 
 
 def upload_backtest_signals(strategy_signal: dict, url: str):
@@ -22,9 +22,16 @@ def upload_backtest_signals(strategy_signal: dict, url: str):
     requests.HTTPError
         Returns None if the upload is successful.
     """
-    res = requests.post(url=url, json=strategy_signal, timeout=60, headers=headers)
+    res = requests.post(
+        url=url,
+        json=strategy_signal,
+        timeout=60,
+        auth=HTTPBasicAuth(
+            username=cfg.FINNIZE_API_KEY, password=cfg.FINNIZE_API_SECRET
+        ),
+    )
     if not res.ok:
-        msg = f"{res.json()}"
+        msg = f"{res.text}"
         raise requests.HTTPError(msg)
 
 
@@ -43,7 +50,14 @@ def delete_backtest_signals(strategy_id: int, url: str):
         Returns None if the upload is successful.
     """
     json_strategy_id = {"strategy_id": strategy_id}
-    res = requests.delete(url=url, json=json_strategy_id, timeout=60, headers=headers)
+    res = requests.delete(
+        url=url,
+        json=json_strategy_id,
+        timeout=60,
+        auth=HTTPBasicAuth(
+            username=cfg.FINNIZE_API_KEY, password=cfg.FINNIZE_API_SECRET
+        ),
+    )
     if not res.ok:
-        msg = f"{res.json()}"
+        msg = f"{res.text}"
         raise requests.HTTPError(msg)

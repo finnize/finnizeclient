@@ -13,7 +13,7 @@ def upload_tradingview_signal(
     strategy_id: int,
     weight: float,
     utc="UTC+7",
-    url="https://client-gateway.finnize.com/api/v1/strategy-signal/",
+    url="https://client-gateway.finnize.com/api/v1/strategy-signal/many",
 ):
     """Uploads trading signals generated from a TradingView exported CSV file to the
     Finnize website.
@@ -36,9 +36,9 @@ def upload_tradingview_signal(
 
     Note
     -----
-    - DEV endpoint: https://dev-client-gateway.finnize.com/api/v1/strategy-signal/
-    - UAT endpoint: https://uat-client-gateway.finnize.com/api/v1/strategy-signal/
-    - PRD endpoint: https://client-gateway.finnize.com/api/v1/strategy-signal/
+    - DEV endpoint: https://dev-client-gateway.finnize.com/api/v1/strategy-signal/many
+    - UAT endpoint: https://uat-client-gateway.finnize.com/api/v1/strategy-signal/many
+    - PRD endpoint: https://client-gateway.finnize.com/api/v1/strategy-signal/many
     """
     # read CSV files
     df = read_list_of_trades(path=path)
