@@ -53,14 +53,14 @@ coming soon..
 
     **Syntax**
     ```python
-    long_template =  "{ 'authorization': KEY:SECRET,
-                            'strategy_id': strategy_id,
-                            'signals': {'signal_at': '{{timenow}}',
-                                        'signal': {
-                                                    'S50': strategy_weight
+    long_template =  '{ "authorization": KEY:SECRET,
+                            "strategy_id": strategy_id,
+                            "signals": {"signal_at": "{{timenow}}",
+                                        "signal": {
+                                                    "S50": strategy_weight
                                                 }
                                         }
-                    }"
+                        }'
     ```
 
     **Full Example**
