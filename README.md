@@ -52,7 +52,7 @@ coming soon..
     and replace the placeholders `strategy_id` and `strategy_weight` with actual numbers in the example below.
 
     **Syntax**
-    ```json
+    ```python
     long_template =  '{ "authorization": KEY:SECRET,
                             "strategy_id": strategy_id,
                             "signals": {"signal_at": "{{timenow}}",
@@ -64,13 +64,13 @@ coming soon..
     ```
 
     **Full Example**
-   ```json
+   ```python
 
     long_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": 1}}}'
     short_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": 0}}}'
     exit_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": -1}}}'
 
-   // Write 'enterLong,' 'exitLong,' 'enterShort,' and 'exitShort' based on your strategy's conditions..
+   # Write 'enterLong,' 'exitLong,' 'enterShort,' and 'exitShort' based on your strategy's conditions..
    if (enterLong)
        strategy.entry("long", strategy.long, alert_message = long_template)
    if (exitLong)
