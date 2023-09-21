@@ -7,7 +7,7 @@ def test_workflow():
         path="example/list_of_trade_macd_example_s50_15m_utc+7.csv",
         strategy_id=3145225415244741,
         weight=1,
-        url="https://dev-client-gateway.finnize.com/api/v1/strategy-signal/",
+        url="https://dev-client-gateway.finnize.com/api/v1/strategy-signal/many",
     )
     return actual
 

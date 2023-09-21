@@ -48,14 +48,27 @@ coming soon..
 
 1. Open the TradingView application.
 2. Click on **"Pine Editor"** and paste the following string template below.
+    - Insert the `KEY` and `SECRET` between colons in the authorization attribute,
+    and replace the placeholders `strategy_id` and `strategy_weight` with actual numbers in the example below.
 
+    **Syntax**
+    ```python
+    long_template =  '{ "authorization": KEY:SECRET,
+                            "strategy_id": strategy_id,
+                            "signals": {"signal_at": "{{timenow}}",
+                                        "signal": {
+                                                    "S50": strategy_weight
+                                                }
+                                        }
+                        }'
+    ```
+
+    **Full Example**
    ```python
-   # Put the numbers in place of 'strategy_number' and 'strategy_weight' in the example below.
-   # long_template =  '{ "strategy_id": strategy_number, "signals": [{"signal_at": "{{timenow}}", "signal": {"S50": strategy_weight}}]}'
 
-   long_template =  '{ "strategy_id": 3907697156338858, "signals": [{"signal_at": "{{timenow}}", "signal": {"S50": 1}}]}'
-   short_template =  '{ "strategy_id": 3907697156338858, "signals": [{"signal_at": "{{timenow}}", "signal": {"S50": 0}}]}'
-   exit_template =  '{ "strategy_id": 3907697156338858, "signals": [{"signal_at": "{{timenow}}", "signal": {"S50": -1}}]}'
+    long_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": 1}}}'
+    short_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": 0}}}'
+    exit_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": -1}}}'
 
    # Write 'enterLong,' 'exitLong,' 'enterShort,' and 'exitShort' based on your strategy's conditions..
    if (enterLong)
