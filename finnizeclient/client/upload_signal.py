@@ -2,6 +2,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 
 from finnizeclient import config as cfg
+from finnizeclient.utils import get_current_datetime
 
 """
 The user should be authorized as a guru to be able to upload or delete the backtest signal.
@@ -57,6 +58,31 @@ def delete_backtest_signals(strategy_id: int, url: str):
         auth=HTTPBasicAuth(
             username=cfg.FINNIZE_API_KEY, password=cfg.FINNIZE_API_SECRET
         ),
+    )
+    if not res.ok:
+        msg = f"{res.text}"
+        raise requests.HTTPError(msg)
+
+
+def upload_execute_signal(strategy_id: int, url: str, strategy_signal: dict):
+    """Upload the signal to finnize website.
+
+    Note
+    -----
+    strategy_signal = {"S50": 1}
+    """
+    strategy_signal = {
+        "authorization": f"{cfg.FINNIZE_API_KEY}:{cfg.FINNIZE_API_SECRET}",
+        "strategy_id": strategy_id,
+        "signals": {
+            "signal_at": f"{get_current_datetime()}",
+            "signal": strategy_signal,
+        },
+    }
+    res = requests.post(
+        url=url,
+        json=strategy_signal,
+        timeout=60,
     )
     if not res.ok:
         msg = f"{res.text}"

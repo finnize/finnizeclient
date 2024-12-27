@@ -9,7 +9,7 @@ The weight should be between 0 and 1. A value of 1 signifies a full Long or Shor
 Enter the path, strategy_id, weight and url before uploading signals
 """
 upload_tradingview_signal(
-    path="example/list_of_trade_example.csv",
+    path="example/list_of_trade_macd_example_s50_h1_utc+7.csv",
     strategy_id=3907697156338858,
     weight=1,
     utc="UTC+7",
