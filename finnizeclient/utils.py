@@ -4,6 +4,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from dateutil import tz
+from dateutil.tz import tzlocal
 
 formats = [
     "%Y-%m-%d %H:%M",
@@ -205,3 +206,7 @@ def transform_list_of_trades(
     # transform as a dictionary signals
     strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
     return strategy_signal
+
+
+def get_current_datetime() -> datetime:
+    return datetime.now(tz=tzlocal()).strftime("%Y-%m-%dT%H:%M%z")

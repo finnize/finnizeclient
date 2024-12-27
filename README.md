@@ -7,12 +7,13 @@ The FinnizeClient is an open-source library that assists investors in uploading 
 - [Table of Contents](#table-of-contents)
 - [Installation](#installation)
 - [Workflow](#workflow)
-  - [Python](#python)
+  - [TradingView](#tradingview)
     - [Upload Daily Signal](#upload-daily-signal)
     - [Upload Backtest Signal](#upload-backtest-signal)
-  - [TradingView](#tradingview)
+  - [Python](#python)
     - [Upload Daily Signal](#upload-daily-signal-1)
     - [Upload Backtest Signal](#upload-backtest-signal-1)
+    - [Delete Backtest Signal](#delete-backtest-signal)
 
 ## Installation
 
@@ -24,23 +25,9 @@ pip install git+https://github.com/finnize/finnizeclient
 
 1. **Generate a API KEY** on finnize website.
 2. you must first grant your account **guru privileges** in order to use the FinnizeClient API.
-    - If this is not done, an "Unauthorized" error will be raised.
+   - If this is not done, an "Unauthorized" error will be raised.
 3. when uploading any signals to the Finnize website, you need to be aware of the **strategy_id**.
-    - This is crucial, as the upload method will result in a 404 error with the message "Strategy not found" if the strategy does not exist.
-
-### Python
-
-coming soon..
-
-#### Upload Daily Signal
-
-coming soon..
-
-#### Upload Backtest Signal
-
-coming soon..
-
----
+   - This is crucial, as the upload method will result in a 404 error with the message "Strategy not found" if the strategy does not exist.
 
 ### TradingView
 
@@ -48,22 +35,25 @@ coming soon..
 
 1. Open the TradingView application.
 2. Click on **"Pine Editor"** and paste the following string template below.
-    - Insert the `KEY` and `SECRET` between colons in the authorization attribute,
-    and replace the placeholders `strategy_id` and `strategy_weight` with actual numbers in the example below.
 
-    **Syntax**
-    ```python
-    long_template =  '{ "authorization": KEY:SECRET,
-                            "strategy_id": strategy_id,
-                            "signals": {"signal_at": "{{timenow}}",
-                                        "signal": {
-                                                    "S50": strategy_weight
-                                                }
-                                        }
-                        }'
-    ```
+   - Insert the `KEY` and `SECRET` between colons in the authorization attribute,
+     and replace the placeholders `strategy_id` and `strategy_weight` with actual numbers in the example below.
 
-    **Full Example**
+   **Syntax**
+
+   ```python
+   long_template =  '{ "authorization": KEY:SECRET,
+                           "strategy_id": strategy_id,
+                           "signals": {"signal_at": "{{timenow}}",
+                                       "signal": {
+                                                   "S50": strategy_weight
+                                               }
+                                       }
+                       }'
+   ```
+
+   **Full Example**
+
    ```python
 
     long_template =  '{ "authorization": "fnz_1234:1234abc", "strategy_id": 4343, "signals": {"signal_at": "{{timenow}}", "signal": {"S50": 1}}}'
@@ -116,3 +106,54 @@ coming soon..
 
 4. Open the Visual Code Studio application.
 5. Follow the steps outlined in the sample code within the `/example` folder, specifically in the file named `upload_signal_example.py`.
+
+---
+
+### Python
+
+#### Upload Daily Signal
+
+1. Define `FINNIZE_API_KEY` and `FINNIZE_SECRET_KEY` in the environment file.
+2. Set the `strategy_id` before using this method to execute.
+3. Specify a stock name and weight to define the direction of the signal.
+
+   ```python
+    from finnizeclient.client.upload_signal import upload_execute_signal
+
+    upload_execute_signal(
+    strategy_id=123,
+    url="https://gateway-client.finnize.com/api/v1/strategy-signal",
+    strategy_signal={"S50": 1},
+    )
+   ```
+
+#### Upload Backtest Signal
+
+1. Define `FINNIZE_API_KEY` and `FINNIZE_SECRET_KEY` in the environment file.
+2. Set the `strategy_id` before using this method to execute, and provide the signal CSV path exported.
+
+   ```python
+    from finnizeclient.workflow import upload_tradingview_signal
+
+    upload_tradingview_signal(
+        path="example/list_of_trade_macd_example_s50_15m_utc+7.csv",
+        strategy_id=123,
+        weight=1,
+        utc="UTC+7",
+        url="https://gateway-client.finnize.com/api/v1/strategy-signal/many",
+    )
+   ```
+
+#### Delete Backtest Signal
+
+1. Define `FINNIZE_API_KEY` and `FINNIZE_SECRET_KEY` in the environment file.
+2. Set the `strategy_id` before using this method to execute.
+
+   ```python
+   from finnizeclient.client.upload_signal import delete_backtest_signals
+
+   delete_backtest_signals(
+       strategy_id=123,
+       url="https://gateway-client.finnize.com/api/v1/strategy-signal",
+   )
+   ```
