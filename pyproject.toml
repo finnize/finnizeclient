@@ -25,7 +25,8 @@ classifiers = [
 dependencies = [
   "python-dotenv>=1.0.0,<1.1.0",
   "numpy>=1.24.2",
-  "pandas>=1.5"
+  "pandas>=1.5",
+  "requests"
 ]
 
 [project.urls]
