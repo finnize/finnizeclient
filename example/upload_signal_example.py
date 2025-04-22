@@ -9,7 +9,7 @@ The weight should be between 0 and 1. A value of 1 signifies a full Long or Shor
 Enter the path, strategy_id, weight and url before uploading signals
 """
 upload_tradingview_signal(
-    path="example/[PRD] Swing Trend.xlsx",
+    path="example/[DEV]_Dynamic_Volatility_TFEX_S501!_2025-04-22.xlsx",
     strategy_id=3907697156338858,
     weight=1,
     utc="UTC+7",
