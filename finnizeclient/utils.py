@@ -9,6 +9,9 @@ formats = [
     "%Y-%m-%d",
 ]
 
+FORCE_SYMBOL = "S50"
+DATETIME_FORMAT = "%Y-%m-%dT%H:%M%z"
+
 
 def read_list_of_trades(path: str):
     """The default sorting order for the trade list on TradingView is from newest to
@@ -60,16 +63,18 @@ def transform_list_of_trades(
     # Convert column names to lowercase and replace spaces with underscores
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 
+    # Drop not close trade
+    df = df.dropna(subset=["date/time"])
+
     # Transform signal_at
     if utc.startswith("UTC+"):
         tz = "Etc/GMT-" + utc[4:]
     elif utc.startswith("UTC-"):
         tz = "Etc/GMT+" + utc[4:]
     else:
-        raise ValueError(
-            "Invalid UTC format. Use 'UTC+X' or 'UTC-X' where X is the offset."
-        )
-    signal_at_sr = df["date/time"].dt.tz_localize(tz).dt.to_pydatetime()
+        msg = f"Invalid UTC format: {utc}. Use 'UTC+X' or 'UTC-X'."
+        raise ValueError(msg)
+    signal_at_str_sr = df["date/time"].dt.tz_localize(tz).dt.strftime(DATETIME_FORMAT)
 
     # Transform weight
     is_long = df["type"] == "Entry Long"
@@ -77,24 +82,28 @@ def transform_list_of_trades(
 
     signal_sr = (is_long * weight) - (is_short * weight)
 
-    # Fix price column name
+    # Transform price
     price_sr = df.filter(like="price_").iloc[:, 0]
     price_sr = price_sr.str.replace(",", "").astype(float)
 
     def to_dict(signal_at, signal, price):
         return {
             "signal_at": signal_at,
-            "signal": {"S50": signal},
-            "price": {"S50": price},
+            "signal": {FORCE_SYMBOL: signal},
+            "price": {FORCE_SYMBOL: price},
         }
 
     signals = [
         to_dict(signal_at, signal, price)
-        for signal_at, signal, price in zip(signal_at_sr, signal_sr, price_sr)
+        for signal_at, signal, price in zip(signal_at_str_sr, signal_sr, price_sr)
     ]
 
     return {"strategy_id": strategy_id, "signals": signals}
 
 
 def get_current_datetime() -> datetime:
-    return datetime.now(tz=tzlocal()).strftime("%Y-%m-%dT%H:%M%z")
+    return datetime.now(tz=tzlocal())
+
+
+def get_current_datetime_str() -> str:
+    return get_current_datetime().strftime(DATETIME_FORMAT)

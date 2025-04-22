@@ -47,8 +47,8 @@ def upload_tradingview_signal(
     strategy_signal = transform_list_of_trades(
         df=df, strategy_id=strategy_id, weight=weight, utc=utc
     )
-    # logger.debug("Transform signal successful")
+    logger.debug("Transform signal successful")
 
-    # # upload to finnize website
-    # # upload_backtest_signals(strategy_signal=strategy_signal, url=url)
-    # logger.debug("Upload successful")
+    # upload to finnize website
+    upload_backtest_signals(strategy_signal=strategy_signal, url=url)
+    logger.debug("Upload successful")
