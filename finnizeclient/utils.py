@@ -18,7 +18,7 @@ def read_list_of_trades(path: str):
 
     Therefore, we need to rearrange it to display the trades from oldest to newest.
     """
-    df = pd.read_csv(Path(path))
+    df = pd.read_excel(Path(path), sheet_name="List of trades")
 
     df = df.iloc[::-1]
     df.reset_index(drop=True, inplace=True)
@@ -182,30 +182,49 @@ def transform_list_of_trades(
                  {'signal_at': '2023-07-14T17:00+0700', 'signal': {'S50': 0.0}}]
     }
     """
-    # transform to weight
-    df.loc[df["Type"].isin(["Exit Short", "Exit Long"]), "weight"] = 0  # sell
-    df.loc[df["Type"].isin(["Entry Long"]), "weight"] = weight
-    df.loc[df["Type"].isin(["Entry Short"]), "weight"] = -weight
+    # Convert column names to lowercase and replace spaces with underscores
+    df.columns = df.columns.str.lower().str.replace(" ", "_")
 
-    # generate list signals
+    # Convert column name to lowercase and replace spaces with underscores
+    if "type" in df.columns:
+        df["type"] = df["type"].str.lower().str.replace(" ", "_")
+
+    # Fix price column name
+    price_columns = df.filter(like="price_").columns
+    for col in price_columns:
+        df.rename(columns={col: "price"}, inplace=True)
+
+    # Transform to weight
+    df.loc[df["type"].isin(["exit_short", "exit_long"]), "weight"] = 0  # sell
+    df.loc[df["type"].isin(["entry_long"]), "weight"] = weight
+    df.loc[df["type"].isin(["entry_short"]), "weight"] = -weight
+
     signals_list = []
-    for _index, row in df.iterrows():
-        signal = {"signal_at": np.nan, "signal": {}}  # format for each signals
-        signal["signal_at"] = row["Date/Time"]
+    for _, row in df.iterrows():
+        signal = {
+            "signal_at": np.nan,
+            "signal": {},
+            "price": {},
+        }  # format for each signals
+        signal["signal_at"] = row["date/time"]
         signal["signal"]["S50"] = row["weight"]
+        signal["price"]["S50"] = row["price"]
         signals_list.append(signal)
 
     # check the latest signal is holding or not
     if isinstance(signals_list[-1]["signal_at"], float):
         signals_list.pop(-1)
+    print(df.info())
 
     # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
     formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
+
     # handle duplicate signal_at
-    filter_signals = _handle_duplicate_signal_at(signal_list=formatted_signals)
+    # filter_signals = _handle_duplicate_signal_at(signal_list=formatted_signals)
     # transform as a dictionary signals
-    strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
-    return strategy_signal
+    # strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
+    return {}
+    # return strategy_signal
 
 
 def get_current_datetime() -> datetime:
