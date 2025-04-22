@@ -74,8 +74,8 @@ def transform_list_of_trades(
     signal_at_str_sr = df["Date/Time"].dt.tz_localize(tz).dt.strftime(DATETIME_FORMAT)
 
     # Transform weight
-    is_long = df["Type"] == "Entry Long"
-    is_short = df["Type"] == "Entry Short"
+    is_long = df["Type"].str.lower() == "entry long"
+    is_short = df["Type"].str.lower() == "entry short"
 
     signal_sr = (is_long * weight) - (is_short * weight)
 

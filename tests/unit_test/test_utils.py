@@ -18,10 +18,10 @@ class TestTransformListOfTrade:
             (
                 pd.DataFrame(
                     data=[
-                        ["Entry Short", pd.to_datetime("2023-08-04 10:00"), "1,000.0"],
-                        ["Exit Short", pd.to_datetime("2023-08-05 10:00"), "2,000.0"],
-                        ["Entry Long", pd.to_datetime("2023-08-06 10:00"), "3,000.0"],
-                        ["Exit Long", pd.to_datetime("2023-08-07 10:00"), "4,000.0"],
+                        ["Entry short", pd.to_datetime("2023-08-04 10:00"), "1,000.0"],
+                        ["Exit short", pd.to_datetime("2023-08-05 10:00"), "2,000.0"],
+                        ["Entry long", pd.to_datetime("2023-08-06 10:00"), "3,000.0"],
+                        ["Exit long", pd.to_datetime("2023-08-07 10:00"), "4,000.0"],
                     ],
                     columns=["Type", "Date/Time", "Price THB"],
                 ),
@@ -55,10 +55,10 @@ class TestTransformListOfTrade:
             (
                 pd.DataFrame(
                     data=[
-                        ["Entry Long", pd.to_datetime("2023-08-03 10:45"), "1,000.0"],
-                        ["Exit Long", pd.to_datetime("2023-08-03 12:45"), "2,000.0"],
-                        ["Entry Short", pd.to_datetime("2023-08-03 17:45"), "3,000.0"],
-                        ["Exit Short", np.nan, np.nan],
+                        ["Entry long", pd.to_datetime("2023-08-03 10:45"), "1,000.0"],
+                        ["Exit long", pd.to_datetime("2023-08-03 12:45"), "2,000.0"],
+                        ["Entry short", pd.to_datetime("2023-08-03 17:45"), "3,000.0"],
+                        ["Exit short", np.nan, np.nan],
                     ],
                     columns=["Type", "Date/Time", "Price THB"],
                 ),
@@ -87,9 +87,9 @@ class TestTransformListOfTrade:
             (
                 pd.DataFrame(
                     data=[
-                        ["Entry Long", pd.to_datetime("2023-08-02"), "1,000.0"],
-                        ["Exit Long", pd.to_datetime("2023-08-03"), "2,000.0"],
-                        ["Entry Short", pd.to_datetime("2023-08-04"), "3,000.0"],
+                        ["Entry long", pd.to_datetime("2023-08-02"), "1,000.0"],
+                        ["Exit long", pd.to_datetime("2023-08-03"), "2,000.0"],
+                        ["Entry short", pd.to_datetime("2023-08-04"), "3,000.0"],
                     ],
                     columns=["Type", "Date/Time", "Price THB"],
                 ),
