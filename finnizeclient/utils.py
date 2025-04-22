@@ -60,11 +60,8 @@ def transform_list_of_trades(
                  {'signal_at': '2023-07-14T17:00+0700', 'signal': {'S50': 0.0}}]
     }
     """
-    # Convert column names to lowercase and replace spaces with underscores
-    df.columns = df.columns.str.lower().str.replace(" ", "_")
-
     # Drop not close trade
-    df = df.dropna(subset=["date/time"])
+    df = df.dropna(subset=["Date/Time"])
 
     # Transform signal_at
     if utc.startswith("UTC+"):
@@ -74,16 +71,16 @@ def transform_list_of_trades(
     else:
         msg = f"Invalid UTC format: {utc}. Use 'UTC+X' or 'UTC-X'."
         raise ValueError(msg)
-    signal_at_str_sr = df["date/time"].dt.tz_localize(tz).dt.strftime(DATETIME_FORMAT)
+    signal_at_str_sr = df["Date/Time"].dt.tz_localize(tz).dt.strftime(DATETIME_FORMAT)
 
     # Transform weight
-    is_long = df["type"] == "Entry Long"
-    is_short = df["type"] == "Entry Short"
+    is_long = df["Type"] == "Entry Long"
+    is_short = df["Type"] == "Entry Short"
 
     signal_sr = (is_long * weight) - (is_short * weight)
 
     # Transform price
-    price_sr = df.filter(like="price_").iloc[:, 0]
+    price_sr = df.filter(like="Price ").iloc[:, 0]
     price_sr = price_sr.str.replace(",", "").astype(float)
 
     def to_dict(signal_at, signal, price):
