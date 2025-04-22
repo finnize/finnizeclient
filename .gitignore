@@ -160,4 +160,4 @@ cython_debug/
 #.idea/
 .DS_Store
 example/list_of_trade_reversal_s50_15m_utc+7.csv
-.playground
+playground.py

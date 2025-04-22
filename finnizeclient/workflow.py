@@ -15,16 +15,16 @@ def upload_tradingview_signal(
     utc="UTC+7",
     url="https://client-gateway.finnize.com/api/v1/strategy-signal/many",
 ):
-    """Uploads trading signals generated from a TradingView exported CSV file to the
+    """Uploads trading signals generated from a TradingView exported xlsx file to the
     Finnize website.
 
-    This function reads a CSV file containing trade data exported from TradingView, transforms
+    This function reads a xlsx file containing trade data exported from TradingView, transforms
     the data into a signal dictionary format, and uploads the signals to the Finnize website.
 
     Parameters
     ----------
     path : str
-        The file path to the CSV file containing trading data exported from TradingView.
+        The file path to the xlsx file containing trading data exported from TradingView.
     strategy_id : int
         The unique identifier for the trading strategy associated with the signals.
     weight : float
@@ -40,10 +40,10 @@ def upload_tradingview_signal(
     - UAT endpoint: https://uat-client-gateway.finnize.com/api/v1/strategy-signal/many
     - PRD endpoint: https://client-gateway.finnize.com/api/v1/strategy-signal/many
     """
-    # read CSV files
+    # read xlsx files
     df = read_list_of_trades(path=path)
 
-    # transform CSV files to signal dictionary before sent to Finnize website
+    # transform xlsx files to signal dictionary before sent to Finnize website
     strategy_signal = transform_list_of_trades(
         df=df, strategy_id=strategy_id, weight=weight, utc=utc
     )

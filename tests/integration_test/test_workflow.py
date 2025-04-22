@@ -4,7 +4,7 @@ from finnizeclient.workflow import upload_tradingview_signal
 
 def test_workflow():
     actual = upload_tradingview_signal(
-        path="example/list_of_trade_macd_example_s50_15m_utc+7.csv",
+        path="example/[DEV]_Dynamic_Volatility_TFEX_S501!_2025-04-22.xlsx",
         strategy_id=3145225415244741,
         weight=1,
         url="https://dev-client-gateway.finnize.com/api/v1/strategy-signal/many",
