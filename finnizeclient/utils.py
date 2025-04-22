@@ -50,7 +50,7 @@ def transform_list_of_trades(
 
     Examples
     -------
-    >>> signals = transform_list_of_trades("trades.csv", 999, 0.5)
+    >>> signals = transform_list_of_trades("trades.xlsx", 999, 0.5)
     >>> print(signals)
     {'strategy_id': 999,
      'signals': [{'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
