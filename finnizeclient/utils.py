@@ -1,9 +1,7 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
-import numpy as np
 import pandas as pd
-from dateutil import tz
 from dateutil.tz import tzlocal
 
 formats = [
@@ -18,130 +16,7 @@ def read_list_of_trades(path: str):
 
     Therefore, we need to rearrange it to display the trades from oldest to newest.
     """
-    df = pd.read_excel(Path(path), sheet_name="List of trades")
-
-    df = df.iloc[::-1]
-    df.reset_index(drop=True, inplace=True)
-    return df
-
-
-def _parse_datetime(input_str: str) -> datetime:
-    """Parse a datetime string using a list of possible formats.
-
-    Parameters
-    ----------
-    input_str : str
-        The input datetime string to be parsed.
-
-    Returns
-    -------
-    datetime
-        The parsed datetime object.
-
-    Raises
-    ------
-    ValueError
-        If the input datetime string cannot be parsed using any of the provided formats.
-    """
-    for format_str in formats:
-        try:
-            dt_object = datetime.strptime(input_str, format_str)
-            return dt_object
-        except ValueError:
-            pass
-
-    msg = "Invalid datetime format"
-    raise ValueError(msg)
-
-
-def _format_datetime(signal_list: list[dict], utc="UTC+7") -> list[dict]:
-    """Format datetime strings in a list of signal dictionaries to UTC with the format
-    '%Y-%m-%dT%H:%M:Z'.
-
-    Parameters
-    ----------
-    signal_list : list[dict]
-        A list of dictionaries containing signal information.
-
-    utc : str, optional
-        The UTC offset in the format 'UTC±X', where X is the offset in hours. Default is 'UTC+7'.
-
-    Returns
-    -------
-    list[dict]
-        A list of dictionaries with formatted datetime strings in UTC and signal data.
-
-    Notes
-    -----
-    This function takes a list of dictionaries, each representing a signal with a 'signal_at' datetime
-    string and a 'signal' dictionary. It converts the 'signal_at' datetime strings from the provided
-    timezone (Asia/Bangkok) to UTC and formats them using the '%Y-%m-%dT%H:%M:Z' format.
-
-    Example
-    -------
-    >>> signal_list = [
-        {'signal_at': '2023-08-07 13:00', 'signal': {'S50': 0.0}},
-        {'signal_at': '2023-08-04 17:45', 'signal': {'S50': -0.5}}
-    ]
-    >>> formatted_signals = _format_datetime(signal_list)
-    >>> print(formatted_signals)
-        [
-            {'signal_at': '2023-08-07T13:00+0700', 'signal': {'S50': 0.0}},
-            {'signal_at': '2023-08-04T17:45+0700', 'signal': {'S50': -0.5}}
-        ]
-    """
-    offset = 7 - int(utc.split("UTC")[1][:2])
-    formatted_signals = [
-        {
-            "signal_at": (_parse_datetime(item["signal_at"]) + timedelta(hours=offset))
-            .replace(tzinfo=tz.gettz("Etc/GMT-7"))
-            .strftime("%Y-%m-%dT%H:%M%z"),
-            "signal": item["signal"],
-        }
-        for item in signal_list
-    ]
-    return formatted_signals
-
-
-def _handle_duplicate_signal_at(signal_list: list[dict]):
-    """Filter out duplicate signal_at entries.
-
-    Parameters
-    ----------
-    signal_list : list[dict]
-        A list of dictionaries containing signal data.
-
-    Returns
-    -------
-    list[dict]
-        A filtered list of dictionaries with duplicate signal_at entries removed
-
-    Notes
-    --------
-    This function handles cases where an entry has a signal, and during the same interval period,
-    the price hits the stop loss. In backtesting, such signals are rejected
-    because the backtesting algorithm processes only OHLC prices.
-    However, in actual execution, this issue does not pose a problem.
-
-    Examples
-    --------
-    >>> data = [
-    ...            {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
-    ...            {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
-    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 1.0}},
-    ...            {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}}, # SL
-    ...            {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},
-    ... ]
-    >>> result = _handle_duplicate_signal_at(data)
-    >>> print(result)
-    [   {"signal_at": "2023-08-04 12:00", "signal": {"S50": 1.0}},
-        {"signal_at": "2023-08-04 13:00", "signal": {"S50": 0.0}},
-        {"signal_at": "2023-08-04 14:00", "signal": {"S50": 0.0}},
-        {"signal_at": "2023-08-04 15:00", "signal": {"S50": 1.0}},]
-    """
-
-    d = {i["signal_at"]: i for i in signal_list}
-    return list(d.values())
+    return pd.read_excel(Path(path), sheet_name="List of trades")
 
 
 def transform_list_of_trades(
@@ -185,46 +60,40 @@ def transform_list_of_trades(
     # Convert column names to lowercase and replace spaces with underscores
     df.columns = df.columns.str.lower().str.replace(" ", "_")
 
-    # Convert column name to lowercase and replace spaces with underscores
-    if "type" in df.columns:
-        df["type"] = df["type"].str.lower().str.replace(" ", "_")
+    # Transform signal_at
+    if utc.startswith("UTC+"):
+        tz = "Etc/GMT-" + utc[4:]
+    elif utc.startswith("UTC-"):
+        tz = "Etc/GMT+" + utc[4:]
+    else:
+        raise ValueError(
+            "Invalid UTC format. Use 'UTC+X' or 'UTC-X' where X is the offset."
+        )
+    signal_at_sr = df["date/time"].dt.tz_localize(tz).dt.to_pydatetime()
+
+    # Transform weight
+    is_long = df["type"] == "Entry Long"
+    is_short = df["type"] == "Entry Short"
+
+    signal_sr = (is_long * weight) - (is_short * weight)
 
     # Fix price column name
-    price_columns = df.filter(like="price_").columns
-    for col in price_columns:
-        df.rename(columns={col: "price"}, inplace=True)
+    price_sr = df.filter(like="price_").iloc[:, 0]
+    price_sr = price_sr.str.replace(",", "").astype(float)
 
-    # Transform to weight
-    df.loc[df["type"].isin(["exit_short", "exit_long"]), "weight"] = 0  # sell
-    df.loc[df["type"].isin(["entry_long"]), "weight"] = weight
-    df.loc[df["type"].isin(["entry_short"]), "weight"] = -weight
+    def to_dict(signal_at, signal, price):
+        return {
+            "signal_at": signal_at,
+            "signal": {"S50": signal},
+            "price": {"S50": price},
+        }
 
-    signals_list = []
-    for _, row in df.iterrows():
-        signal = {
-            "signal_at": np.nan,
-            "signal": {},
-            "price": {},
-        }  # format for each signals
-        signal["signal_at"] = row["date/time"]
-        signal["signal"]["S50"] = row["weight"]
-        signal["price"]["S50"] = row["price"]
-        signals_list.append(signal)
+    signals = [
+        to_dict(signal_at, signal, price)
+        for signal_at, signal, price in zip(signal_at_sr, signal_sr, price_sr)
+    ]
 
-    # check the latest signal is holding or not
-    if isinstance(signals_list[-1]["signal_at"], float):
-        signals_list.pop(-1)
-    print(df.info())
-
-    # convert and format datetime as UTC+7 ("%Y-%m-%dT%H:%M%z")
-    formatted_signals = _format_datetime(signal_list=signals_list, utc=utc)
-
-    # handle duplicate signal_at
-    # filter_signals = _handle_duplicate_signal_at(signal_list=formatted_signals)
-    # transform as a dictionary signals
-    # strategy_signal = {"strategy_id": strategy_id, "signals": filter_signals}
-    return {}
-    # return strategy_signal
+    return {"strategy_id": strategy_id, "signals": signals}
 
 
 def get_current_datetime() -> datetime:
