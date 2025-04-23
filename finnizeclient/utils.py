@@ -19,7 +19,7 @@ def read_list_of_trades(path: str):
 
     Therefore, we need to rearrange it to display the trades from oldest to newest.
     """
-    return pd.read_excel(Path(path), sheet_name="List of trades")
+    return pd.read_excel(Path(path), sheet_name="List of trades", thousands=",")
 
 
 def transform_list_of_trades(
@@ -81,7 +81,6 @@ def transform_list_of_trades(
 
     # Transform price
     price_sr = df.filter(like="Price ").iloc[:, 0]
-    price_sr = price_sr.str.replace(",", "").astype(float)
 
     def to_dict(signal_at, signal, price):
         return {
