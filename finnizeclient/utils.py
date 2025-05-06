@@ -61,7 +61,7 @@ def transform_list_of_trades(
     }
     """
     # Drop not close trade
-    df = df.dropna(subset=["Date/Time"])
+    df = df[df["Signal"].str.lower() != "open"]
 
     # Transform signal_at
     if utc.startswith("UTC+"):
